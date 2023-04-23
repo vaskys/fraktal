@@ -1,23 +1,27 @@
-#include <omp.h>
+#include <mpi.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-int main (int argc, char *argv[]) {
-  
-  int nthreads, tid;
+int main(int argc, char** argv) {
+    // Initialize the MPI environment
+    MPI_Init(NULL, NULL);
 
-  /* Fork a team of threads giving them their own copies of variables */
-#pragma omp parallel private(nthreads, tid)
-  {
-    /* Get thread number */
-    tid = omp_get_thread_num();
-    printf("Hello World from thread = %d\n", tid);
-    
-    /* Only master thread does this */
-    if (tid == 0) {
-      nthreads = omp_get_num_threads();
-      printf("Number of threads = %d\n", nthreads);
-    }
-  }  /* All threads join master thread and disband */
-  exit(0);
+    // Get the number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    // Get the rank of the process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    // Get the name of the processor
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    MPI_Get_processor_name(processor_name, &name_len);
+
+    // Print off a hello world message
+    printf("Hello world from processor %s, rank %d out of %d processors\n",
+           processor_name, world_rank, world_size);
+
+    // Finalize the MPI environment.
+    MPI_Finalize();
 }

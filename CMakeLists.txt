@@ -10,9 +10,10 @@ set(CMAKE_C_STANDARD 11)
 FILE(GLOB_RECURSE source src/*.c)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-    message("CLANG XDDD")
     add_compile_options(-Xclang -fopenmp)
 endif()
+
+find_package(MPI REQUIRED) 
 
 link_directories(
     /opt/homebrew/opt/libomp/lib
@@ -21,6 +22,7 @@ link_directories(
 include_directories(
     include
     /opt/homebrew/opt/libomp/include
+    SYSTEM ${MPI_INCLUDE_PATH}
 )
 
 add_executable(fraktal
@@ -28,3 +30,4 @@ add_executable(fraktal
 )
 
 target_link_libraries(fraktal omp)
+target_link_libraries(fraktal ${MPI_C_LIBRARIES})
