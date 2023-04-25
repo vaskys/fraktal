@@ -1,7 +1,9 @@
 #include "ogl.h"
 #include "config.h"
 #include "gui.h"
+#include "framebuffer.h"
 
+FrameBuffer *main_buffer;
 GLFWwindow *window;
 unsigned int VAO;
 unsigned int VBO;
@@ -41,6 +43,8 @@ int g_init(int screenW, int screenH, const char *title) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
     window = glfwCreateWindow(screenW, screenH, title, NULL, NULL);
     glfwMakeContextCurrent(window);
 
@@ -48,10 +52,17 @@ int g_init(int screenW, int screenH, const char *title) {
     init_gui(window);
     init_g_object();
 
+    main_buffer = new FrameBuffer(screenW,screenH);
+
+    screen_w = screenW;
+    screen_h = screenH;
+
     return 0;
 }
 
 void g_clear() {
+    main_buffer->clear();
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -69,23 +80,27 @@ bool g_main_loop() {
 void g_swap_buffer() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
 
     draw_gui();
 
-    glfwGetFramebufferSize(window, &screen_w, &screen_h);
-    glViewport(0, 0,screen_w, screen_h);
     glfwSwapBuffers(window);
 }
 
 void g_clear_color(float r, float g, float b) {
+    glBindFramebuffer(GL_FRAMEBUFFER, main_buffer->id);
     glClearColor(r,g,b,1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+FrameBuffer* g_get_main_buffer() {
+    return main_buffer;
+}
 
+int g_get_screen_w() {
+    return screen_w;
+}
 
-
-
-
+int g_get_screen_h() {
+    return screen_h;
+}

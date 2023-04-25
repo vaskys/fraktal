@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
     while (g_main_loop()) {
 
-        g_clear_color(1, 1, 1);
+        g_clear_color(1, 0, 0);
         g_swap_buffer();
     }
 
