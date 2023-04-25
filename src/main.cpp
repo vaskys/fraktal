@@ -1,4 +1,5 @@
 #include <iostream>
+#include "config.h"
 #include "ogl.h"
 
 using namespace std;
