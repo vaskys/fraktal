@@ -1,16 +1,35 @@
 #include "ogl.h"
 #include "config.h"
+#include "gui.h"
 
 GLFWwindow *window;
+unsigned int VAO;
+unsigned int VBO;
 
-void init_gui(GLFWwindow *window) {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init();
-    ImGui::StyleColorsDark();
+int screen_w = 0;
+int screen_h = 0;
+
+void init_g_object() {
+    float quad[] = { 
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad), &quad, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
 int g_init(int screenW, int screenH, const char *title) {
@@ -27,6 +46,7 @@ int g_init(int screenW, int screenH, const char *title) {
 
     glewInit();
     init_gui(window);
+    init_g_object();
 
     return 0;
 }
@@ -38,33 +58,34 @@ void g_clear() {
     glfwTerminate();
 }
 
-bool g_main_loop(float r, float g, float b) {
+bool g_main_loop() {
     if(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        glClearColor(r,g,b,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
         return true;
     }
     return false;
 }
 
 void g_swap_buffer() {
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    draw_gui();
+
+    glfwGetFramebufferSize(window, &screen_w, &screen_h);
+    glViewport(0, 0,screen_w, screen_h);
     glfwSwapBuffers(window);
 }
 
-
-void g_draw_gui() {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+void g_clear_color(float r, float g, float b) {
+    glClearColor(r,g,b,1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
+
+
+
+
 
 

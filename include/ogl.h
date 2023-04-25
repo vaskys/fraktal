@@ -4,8 +4,8 @@
 int g_init(int screenW,int screenH,const char* title);
 void g_clear();
 
-bool g_main_loop(float r,float g,float b);
+bool g_main_loop();
+void g_clear_color(float r,float g,float b);
 void g_swap_buffer();
-void g_draw_gui();
 
 #endif
