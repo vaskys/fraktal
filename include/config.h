@@ -11,10 +11,12 @@
 
 #include <vector>
 
+using namespace std;
+
 #define DEBUG_PRINT 1
 #define GUI 1
 
 void print(std::string msg);
-void export_image(const char* file_path);
+void export_image(string file_path);
 
 using namespace std;

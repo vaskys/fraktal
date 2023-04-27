@@ -5,7 +5,9 @@
 #include "stb_image_write.h"
 
 
-void export_image(const char *file_path) {
+void export_image(string file_path) {
+    file_path += ".png";
+
     int width, height;
     glfwGetFramebufferSize(g_get_window(), &width, &height);
 
@@ -20,7 +22,7 @@ void export_image(const char *file_path) {
     glReadBuffer(g_get_main_buffer()->texture);
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
     stbi_flip_vertically_on_write(true);
-    stbi_write_png(file_path, width, height, nrChannels, buffer.data(), stride);
+    stbi_write_png(file_path.c_str(), width, height, nrChannels, buffer.data(), stride);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

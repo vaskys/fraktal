@@ -97,7 +97,7 @@ void g_swap_buffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    #if GUI  == 1 
+    #if GUI == 1 
         draw_gui();
     #else
         fbo_shader->use();

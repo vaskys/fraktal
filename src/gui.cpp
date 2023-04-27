@@ -3,6 +3,10 @@
 #include "ogl.h"
 #include <string>
 
+
+bool save_window = false;
+char save_input_text[255] = "";
+
 void init_gui(GLFWwindow *window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -14,17 +18,49 @@ void init_gui(GLFWwindow *window) {
 }
 
 
+void gui_save_view() {
+    if(save_window) {
+
+        float pos_x = ( (float)g_get_screen_w() / 100 ) * 20;
+        float pos_y = ( (float)g_get_screen_h() / 100 ) * 35;
+
+        float size_w = ( (float)g_get_screen_w() / 100 ) * 40;
+        float size_h = ( (float)g_get_screen_h() / 100 ) * 10;
+
+        ImGui::SetNextWindowPos(ImVec2(pos_x,pos_y));
+        ImGui::SetNextWindowSize(ImVec2(size_w,size_h));
+
+        if(ImGui::Begin("Export",0,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
+            ImGui::InputText("",save_input_text,IM_ARRAYSIZE(save_input_text));
+            ImGui::SameLine();
+            if(ImGui::Button("ULOZIT"))
+            {
+                save_window = false;
+                export_image(save_input_text);
+                return;
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("ZRUSIT"))
+            {
+                save_window = false;
+            }
+
+            ImGui::End();
+        }
+    }
+}
+
 void gui_main_menu() {
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Export"))
         {
-            if (ImGui::MenuItem("Png")) 
+            if (ImGui::MenuItem("Aktual")) 
             {
-                print("CAW");
-                export_image("test.png");
+                save_window = true;
+//                export_image("test");
             }
-            if (ImGui::MenuItem("Jpg")) 
+            if (ImGui::MenuItem("Vsetky")) 
             {
             }
 
@@ -96,6 +132,7 @@ void draw_gui() {
     gui_main_menu();
     gui_fbo_view();
     gui_side_panel();
+    gui_save_view();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
