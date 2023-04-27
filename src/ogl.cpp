@@ -2,15 +2,17 @@
 #include "config.h"
 #include "gui.h"
 #include "framebuffer.h"
+#include "shader.h"
 
 FrameBuffer *main_buffer;
 GLFWwindow *window;
 unsigned int VAO;
 unsigned int VBO;
 
-
 int screen_w = 0;
 int screen_h = 0;
+
+Shader *fbo_shader;
 
 void init_g_object() {
     float quad[] = { 
@@ -32,6 +34,11 @@ void init_g_object() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+}
+
+void g_draw_g_object() {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 int g_init(int screenW, int screenH, const char *title) {
@@ -57,10 +64,18 @@ int g_init(int screenW, int screenH, const char *title) {
     screen_w = screenW;
     screen_h = screenH;
 
+    fbo_shader = new Shader("shaders/fbo_vertex.glsl","shaders/fbo_fragment.glsl");
+
     return 0;
 }
 
 void g_clear() {
+
+    delete main_buffer;
+    delete fbo_shader;
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
     main_buffer->clear();
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -82,7 +97,15 @@ void g_swap_buffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    draw_gui();
+    #if GUI  == 1 
+        draw_gui();
+    #else
+        fbo_shader->use();
+        glActiveTexture(GL_TEXTURE0+main_buffer->texture);
+        fbo_shader->send_int_uniform("fbo_buffer",main_buffer->texture);        
+        glBindTexture(GL_TEXTURE_2D, main_buffer->texture);
+        g_draw_g_object();
+    #endif
 
     glfwSwapBuffers(window);
 }
@@ -104,3 +127,8 @@ int g_get_screen_w() {
 int g_get_screen_h() {
     return screen_h;
 }
+
+GLFWwindow *g_get_window() {
+    return window;
+}
+

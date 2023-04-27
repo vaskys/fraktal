@@ -9,8 +9,12 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#include <vector>
+
 #define DEBUG_PRINT 1
+#define GUI 1
 
 void print(std::string msg);
+void export_image(const char* file_path);
 
 using namespace std;

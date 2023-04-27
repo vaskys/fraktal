@@ -22,6 +22,7 @@ void gui_main_menu() {
             if (ImGui::MenuItem("Png")) 
             {
                 print("CAW");
+                export_image("test.png");
             }
             if (ImGui::MenuItem("Jpg")) 
             {
