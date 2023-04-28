@@ -8,6 +8,7 @@
 vector<MB*> mb_objs;
 MB* active_obj;
 Shader* mb_shader;
+Shader* data_shader;
 
 GLFWwindow *window;
 unsigned int VAO;
@@ -110,6 +111,7 @@ int g_init(int screenW, int screenH, const char *title) {
 
     fbo_shader = new Shader("shaders/fbo_vertex.glsl","shaders/fbo_fragment.glsl");
     mb_shader = new Shader("shaders/mb_vertex.glsl","shaders/mv_fragment.glsl");
+    data_shader = new Shader("shaders/data_vertex.glsl","shaders/data_fragment.glsl");
 
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
@@ -121,7 +123,9 @@ int g_init(int screenW, int screenH, const char *title) {
 }
 
 void g_clear() {
+    delete fbo_shader;
     delete mb_shader;
+    delete data_shader;
 
     for(int i = 0; i < mb_objs.size(); i++ ) {
         mb_objs[i]->clear();
@@ -133,7 +137,6 @@ void g_clear() {
     } 
     mb_objs.clear();
 
-    delete fbo_shader;
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -228,6 +231,10 @@ void g_add_mb_obj() {
 
 Shader *g_get_mb_shader() {
     return mb_shader;
+}
+
+Shader *g_get_data_shader() {
+    return data_shader;
 }
 
 vector<MB*>* g_get_mb_objs() {

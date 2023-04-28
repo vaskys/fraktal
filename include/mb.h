@@ -41,6 +41,12 @@ public:
     void reset();
     void clear();
 
+
+    void set_omp_threads(int i);
+    int get_omp_threads();
+
+    float cas;
+
 private:
     int r;
     int g;
@@ -56,6 +62,8 @@ private:
     void gpu();
     void omp();
     void mpi();
+
+    int n_omp_threads;
 
     int type;
 };

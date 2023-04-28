@@ -124,9 +124,14 @@ void gui_side_panel() {
         float offset_y = selected->get_offset_y();
         float zoom = selected->get_zoom();
 
+
+        int omp_n_threads = selected->get_omp_threads();
+
         const char* items[] = { "GPU", "OMP", "MPI"};
         int item_current_idx = selected->get_type();
         const char* combo_preview_value = items[item_current_idx];
+
+    
 
 
         ImGui::Spacing();
@@ -155,6 +160,9 @@ void gui_side_panel() {
         ImGui::DragFloat("OFFSET Y", &offset_y);
         ImGui::DragInt("Iteracie", &iter);
         ImGui::DragFloat("Zoom", &zoom);
+        if(item_current_idx == 1 ) {
+            ImGui::DragInt("N Vlakna", &omp_n_threads);
+        }
         ImGui::Separator();
         if(ImGui::Button("Reset")) {
             selected->reset();
@@ -164,9 +172,12 @@ void gui_side_panel() {
         if(ImGui::Button("Vymaz")) {
             if(g_get_mb_objs()->size() > 1 ) {
                 g_get_mb_objs()->erase(std::remove(g_get_mb_objs()->begin(), g_get_mb_objs()->end(), selected), g_get_mb_objs()->end());
-                    }
+            }
             return;
         }
+        string cas_t = "Cas " + to_string(selected->cas) + " ms";
+        ImGui::Text(cas_t.c_str());
+
         selected->set_r(r);
         selected->set_g(g);
         selected->set_b(b);
@@ -175,6 +186,7 @@ void gui_side_panel() {
         selected->set_offset_y(offset_y);
         selected->set_iter(iter);
         selected->set_zoom(zoom);
+        selected->set_omp_threads(omp_n_threads);
 
 
         ImGui::End();

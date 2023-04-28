@@ -10,8 +10,10 @@
 #include <backends/imgui_impl_opengl3.h>
 
 #include <vector>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 #define DEBUG_PRINT 1
 #define GUI 1

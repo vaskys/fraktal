@@ -2,6 +2,45 @@
 #include "framebuffer.h"
 #include "ogl.h"
 
+#include <omp.h>
+#include <string>
+#include <unistd.h>
+
+
+float mandelbrot(float cx,float cy,float iteracie) {
+    float zx = 0.0f;
+    float zy = 0.0f;
+    float n = 0.0f;
+    for(int i=0; i < iteracie; i++) {
+        float znew_x = (zx * zx) - (zy * zy) + cx;
+        float znew_y = (2.0 * zx * zy) + cy;
+        zx = znew_x;
+        zy = znew_y;
+
+        if((zx * zy) + (zy *zy) > 100) {
+            break;
+        }
+        n++;
+    }
+    return n/float(iteracie);
+}
+
+float farby_r(float t,float color_r) {
+    float r = color_r * (1.0 - t) * t * t * t;
+    return r;
+}
+
+float farby_g(float t,float color_g) {
+    float g = color_g * (1.0 - t) * (1.0 - t) * t * t;
+    return g;
+}
+
+float farby_b(float t,float color_b) {
+    float b = color_b * (1.0 - t) * (1.0 - t) * (1.0 - t) * t;
+    return b;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 MB::MB() {
     buffer = new FrameBuffer(g_get_screen_w(),g_get_screen_h());
 
@@ -14,6 +53,8 @@ MB::MB() {
     offset_y = 0;
     zoom = 100;
     type = 0;
+    n_omp_threads = 2;
+    cas = 0.0f;
 }
 
 MB::~MB() {
@@ -38,6 +79,8 @@ void MB::update() {
 }
 
 void MB::gpu() {
+    auto start = high_resolution_clock::now();
+
     g_get_mb_shader()->use();
     g_get_mb_shader()->send_int_uniform("screen_w", g_get_screen_w())   ;
     g_get_mb_shader()->send_int_uniform("screen_h", g_get_screen_h());
@@ -50,9 +93,52 @@ void MB::gpu() {
     g_get_mb_shader()->send_int_uniform("iteracie", get_iter());
 
     g_draw_g_object();
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    this->cas = duration.count();
 }
 
-void MB::omp() {}
+int check = 0;
+
+void MB::omp() {
+    float *image_data = new float[g_get_screen_h() * g_get_screen_w() * 3];
+    auto start = high_resolution_clock::now();
+    int pocet = this->n_omp_threads;
+
+    #pragma omp parallel for num_threads(pocet)
+    for(int i=0; i < g_get_screen_h(); i++) {
+        for( int j=0; j< g_get_screen_w(); j++) {
+            float cy = i - (float)g_get_screen_h()/2;
+            float cx = j - (float)g_get_screen_w()/2;
+            cx = cx / this->zoom;
+            cy = cy / this->zoom;
+            cx = cx - this->offset_x;
+            cy = cy - this->offset_y;
+
+            float mb = mandelbrot(cx, cy, this->iter);
+            float r = farby_r(mb, this->get_r());
+            float g = farby_g(mb, this->get_g());
+            float b = farby_b(mb, this->get_b());
+
+            int index_jedna = (i*g_get_screen_w() + j) * 3;
+            int index_dva = (i*g_get_screen_w() + j) * 3 + 1;
+            int index_tri = (i*g_get_screen_w() + j) * 3 + 2;
+
+            image_data[index_jedna] = r;
+            image_data[index_dva] = g;
+            image_data[index_tri] = b;
+        }
+    }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    this->cas= duration.count();
+
+    glBindTexture(GL_TEXTURE_2D, g_get_active_buffer()->texture);
+    glTexSubImage2D(GL_TEXTURE_2D,0,0,0,g_get_screen_w(),g_get_screen_h(),GL_RGB,GL_FLOAT,image_data);
+    delete [] image_data;
+}
 void MB::mpi() {}
 
 void MB::reset() {
@@ -63,7 +149,9 @@ void MB::reset() {
     offset_x = 0;
     offset_y = 0;
     zoom = 100;
+    n_omp_threads = 2;
 }
+
 
 void MB::set_type(int i) {
     this->type = i;
@@ -133,5 +221,15 @@ float MB::get_offset_y() {
 FrameBuffer* MB::get_buffer() {
     return this->buffer;
 }
+
+int MB::get_omp_threads() {
+    return n_omp_threads;
+}
+
+void MB::set_omp_threads(int i) {
+    n_omp_threads = i;
+}
+
+
 
 
