@@ -1,51 +1,49 @@
-#version 330 core
+#version 410 core
 in vec4 gl_FragCoord;
  
 out vec4 FragColor;
  
-#define MAX_ITERATIONS 100
+#define MAX_ITERATIONS 1200
 
+uniform int screen_w;
+uniform int screen_h;
+uniform float mouse_x;
+uniform float mouse_y;
+uniform float zoom;
 
+float n = 0.0f;
+float threshold = 100.0;
 
-int get_iterations()
-{
-    float real = (gl_FragCoord.x / 720.0 - 0.5) * 4.0;
-    float imag = (gl_FragCoord.y / 720.0 - 0.7) * 4.0;
- 
-    int iterations = 0;
-    float const_real = real;
-    float const_imag = imag;
- 
-    while (iterations < MAX_ITERATIONS)
-    {
-        float tmp_real = real;
-        real = (real * real - imag * imag) + const_real;
-        imag = (2.0 * tmp_real * imag) + const_imag;
-         
-        float dist = real * real + imag * imag;
-         
-        if (dist > 4.0)
-        break;
- 
-        ++iterations;
+float mandelbrot(vec2 c) {
+    vec2 z = vec2(0.0,0.0);
+    for(int i = 0; i < MAX_ITERATIONS; i++ ) {
+        vec2 znew;
+        znew.x = (z.x * z.x ) - (z.y * z.y ) + c.x;
+        znew.y = ( 2.0 * z.x * z.y) + c.y;
+        z = znew;
+        if((z.x * z.y) + (z.y * z.y) > threshold) {
+            break;
+        }
+        n++;
     }
-    return iterations;
+    return n/float(MAX_ITERATIONS);
 }
 
-vec4 return_color()
-{
-    int iter = get_iterations();
-    if (iter == MAX_ITERATIONS)
-    {
-        gl_FragDepth = 0.0f;
-        return vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    }
- 
-    float iterations = float(iter) / MAX_ITERATIONS;    
-    return vec4(0.0f, iterations, 0.0f, 1.0f);
+vec4 farby(float t) {											
+		float r = 9.0 * (1.0 - t) * t * t * t;								
+		float g = 15.0 * (1.0 - t) * (1.0 - t) * t * t;						
+		float b = 8.5 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t;				
+																			
+		return vec4(r, g, b, 1.0);											
 }
  
 void main()
 {
-    FragColor = return_color();
+    vec2 coord = vec2(gl_FragCoord.xy);				
+    coord = vec2(coord.x - screen_w/2, coord.y - screen_h/2);
+    coord = coord/zoom;
+    coord = vec2(coord.x - mouse_x, coord.y-mouse_y);
+
+		float mb = mandelbrot(coord);	    
+    FragColor = farby(mb);	
 }

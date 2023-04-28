@@ -8,8 +8,8 @@
 void export_image(string file_path) {
     file_path += ".png";
 
-    int width, height;
-    glfwGetFramebufferSize(g_get_window(), &width, &height);
+    int width = g_get_screen_w();
+    int height = g_get_screen_h();
 
     GLsizei nrChannels = 3;
     GLsizei stride = nrChannels * width;

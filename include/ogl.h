@@ -16,8 +16,19 @@ FrameBuffer* g_get_main_buffer();
 int g_get_screen_w();
 int g_get_screen_h();
 
+int g_get_d_screen_w();
+int g_get_d_screen_h();
+
+int g_get_mouse_x();
+int g_get_mouse_y();
+
+float g_get_zoom();
 
 GLFWwindow *g_get_window();
+
+
+float g_get_center_x();
+float g_get_center_y();
 
 
 #endif

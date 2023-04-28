@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "framebuffer.h"
 #include "shader.h"
+#include <string>
 
 FrameBuffer *main_buffer;
 GLFWwindow *window;
@@ -12,7 +13,46 @@ unsigned int VBO;
 int screen_w = 0;
 int screen_h = 0;
 
+int d_screen_w = 0;
+int d_screen_h = 0;
+
+
+double mouse_x = 0;
+double mouse_y = 0;
+
 Shader *fbo_shader;
+
+
+float center_x = 0;
+float center_y = 0;
+
+
+float zoom = 100;
+bool key_shift = false;
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if(key_shift) {
+        zoom +=yoffset * (zoom/2.0f);
+    }
+    else {
+        center_y -= (yoffset * 1) / zoom;
+        center_x += (xoffset * 1) / zoom;
+    }
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+    if (key == GLFW_KEY_LEFT_SHIFT  && action == GLFW_PRESS ) {
+        key_shift = true;
+    }
+
+    if (key == GLFW_KEY_LEFT_SHIFT  && action == GLFW_RELEASE ) {
+        key_shift = false;
+    }
+}
+
 
 void init_g_object() {
     float quad[] = { 
@@ -66,6 +106,10 @@ int g_init(int screenW, int screenH, const char *title) {
 
     fbo_shader = new Shader("shaders/fbo_vertex.glsl","shaders/fbo_fragment.glsl");
 
+
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
+
     return 0;
 }
 
@@ -87,6 +131,10 @@ void g_clear() {
 bool g_main_loop() {
     if(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+
+        glfwGetFramebufferSize( window, &d_screen_w, &d_screen_h);
+        glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
         return true;
     }
     return false;
@@ -128,7 +176,40 @@ int g_get_screen_h() {
     return screen_h;
 }
 
+int g_get_d_screen_w() {
+    return d_screen_w;
+}
+
+int g_get_d_screen_h() {
+    return d_screen_h;
+}
+
+int g_get_mouse_x() {
+    return mouse_x/g_get_screen_w();
+}
+
+int g_get_mouse_y() {
+    return mouse_y/g_get_screen_h();
+}
+
+float g_get_zoom() {
+    return zoom;
+}
+
 GLFWwindow *g_get_window() {
     return window;
 }
+
+
+
+float g_get_center_x() {
+    return center_x;
+}
+
+float g_get_center_y() {
+    return center_y;
+}
+
+
+
 
