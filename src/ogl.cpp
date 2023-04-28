@@ -2,10 +2,13 @@
 #include "config.h"
 #include "gui.h"
 #include "framebuffer.h"
-#include "shader.h"
+#include "mb.h"
 #include <string>
 
-FrameBuffer *main_buffer;
+vector<MB*> mb_objs;
+MB* active_obj;
+Shader* mb_shader;
+
 GLFWwindow *window;
 unsigned int VAO;
 unsigned int VBO;
@@ -22,23 +25,26 @@ double mouse_y = 0;
 
 Shader *fbo_shader;
 
-
-float center_x = 0;
-float center_y = 0;
-
-
-float zoom = 100;
 bool key_shift = false;
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    float zoom = active_obj->get_zoom();
+    float offset_x = active_obj->get_offset_x();
+    float offset_y = active_obj->get_offset_y();
+
     if(key_shift) {
         zoom +=yoffset * (zoom/2.0f);
+
     }
     else {
-        center_y -= (yoffset * 1) / zoom;
-        center_x += (xoffset * 1) / zoom;
+        offset_y -= (yoffset * 1) / zoom;
+        offset_x += (xoffset * 1) / zoom;
     }
+
+    active_obj->set_zoom(zoom);
+    active_obj->set_offset_x(offset_x);
+    active_obj->set_offset_y(offset_y);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -99,28 +105,38 @@ int g_init(int screenW, int screenH, const char *title) {
     init_gui(window);
     init_g_object();
 
-    main_buffer = new FrameBuffer(screenW,screenH);
-
     screen_w = screenW;
     screen_h = screenH;
 
     fbo_shader = new Shader("shaders/fbo_vertex.glsl","shaders/fbo_fragment.glsl");
-
+    mb_shader = new Shader("shaders/mb_vertex.glsl","shaders/mv_fragment.glsl");
 
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
+
+    g_add_mb_obj();
+    g_set_active_mb_obj(mb_objs.front());
 
     return 0;
 }
 
 void g_clear() {
+    delete mb_shader;
 
-    delete main_buffer;
+    for(int i = 0; i < mb_objs.size(); i++ ) {
+        mb_objs[i]->clear();
+    }
+
+    for (auto p : mb_objs)
+    {
+        delete p;
+    } 
+    mb_objs.clear();
+
     delete fbo_shader;
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    main_buffer->clear();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -149,9 +165,9 @@ void g_swap_buffer() {
         draw_gui();
     #else
         fbo_shader->use();
-        glActiveTexture(GL_TEXTURE0+main_buffer->texture);
-        fbo_shader->send_int_uniform("fbo_buffer",main_buffer->texture);        
-        glBindTexture(GL_TEXTURE_2D, main_buffer->texture);
+        glActiveTexture(GL_TEXTURE0+active_buffer->texture);
+        fbo_shader->send_int_uniform("fbo_buffer",active_buffer->texture);        
+        glBindTexture(GL_TEXTURE_2D, active_buffer->texture);
         g_draw_g_object();
     #endif
 
@@ -159,14 +175,17 @@ void g_swap_buffer() {
 }
 
 void g_clear_color(float r, float g, float b) {
-    glBindFramebuffer(GL_FRAMEBUFFER, main_buffer->id);
+    glBindFramebuffer(GL_FRAMEBUFFER, active_obj->get_buffer()->id);
     glClearColor(r,g,b,1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    active_obj->update();
 }
 
-FrameBuffer* g_get_main_buffer() {
-    return main_buffer;
+FrameBuffer* g_get_active_buffer() {
+    return active_obj->get_buffer();
 }
+
 
 int g_get_screen_w() {
     return screen_w;
@@ -192,24 +211,29 @@ int g_get_mouse_y() {
     return mouse_y/g_get_screen_h();
 }
 
-float g_get_zoom() {
-    return zoom;
-}
 
 GLFWwindow *g_get_window() {
     return window;
 }
 
 
-
-float g_get_center_x() {
-    return center_x;
+MB* g_get_active_mb_obj() {
+    return active_obj;
 }
 
-float g_get_center_y() {
-    return center_y;
+void g_add_mb_obj() {
+    MB*obj = new MB();
+    mb_objs.push_back(obj);
 }
 
+Shader *g_get_mb_shader() {
+    return mb_shader;
+}
 
+vector<MB*>* g_get_mb_objs() {
+    return &mb_objs;
+}
 
-
+void g_set_active_mb_obj(MB *obj) {
+    active_obj = obj;
+}

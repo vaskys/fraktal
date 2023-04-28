@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "imgui.h"
 #include "ogl.h"
+#include "mb.h"
 #include <string>
 
 
@@ -53,15 +54,16 @@ void gui_save_view() {
 void gui_main_menu() {
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("Export"))
+        if (ImGui::BeginMenu("Subor"))
         {
-            if (ImGui::MenuItem("Aktual")) 
+            if (ImGui::MenuItem("Export")) 
             {
                 save_window = true;
 //                export_image("test");
             }
-            if (ImGui::MenuItem("Vsetky")) 
+            if (ImGui::MenuItem("Novy Tab")) 
             {
+                g_add_mb_obj();
             }
 
             ImGui::EndMenu();
@@ -79,16 +81,20 @@ void gui_fbo_view() {
     if(ImGui::Begin("FBO_RENDER",0,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus  )) {
         if(ImGui::BeginTabBar("Main"))
         {
-            if (ImGui::BeginTabItem("Tab"))
-            {
-                string fps="FPS ";
-                ImGui::BeginChild("RENDER");
-                ImVec2 size= ImGui::GetWindowSize();
-                unsigned int t_id=g_get_main_buffer()->texture;
-                ImGui::Image((ImTextureID)t_id,size,ImVec2(0,1),ImVec2(1,0));
-                ImGui::EndChild();
+            for(int i=0;i<g_get_mb_objs()->size();i++) {
+                string id = "Tab "+ to_string(i);
+                if(ImGui::BeginTabItem(id.c_str())) {
+                    ImGui::BeginChild("OBJ");
+                    MB* objekt = g_get_mb_objs()->at(i);
+                    g_set_active_mb_obj(objekt);
 
-                ImGui::EndTabItem();
+                    ImVec2 size= ImGui::GetWindowSize();
+                    unsigned int t_id=objekt->get_buffer()->texture;
+                    ImGui::Image((ImTextureID)t_id,size,ImVec2(0,1),ImVec2(1,0));
+                    ImGui::EndChild();
+
+                    ImGui::EndTabItem();
+                } 
             }
             ImGui::EndTabBar();
         }
@@ -107,17 +113,69 @@ void gui_side_panel() {
 
 
     if(ImGui::Begin("BRUH",0,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus  )) {
-    //if(ImGui::Begin("BRUH")) {
-        ImGui::Text("CAW");
-        ImGui::SameLine();
-        if(ImGui::Button("SAVE"))
+        MB *selected = g_get_active_mb_obj();
+
+        int r = selected->get_r();
+        int g = selected->get_g();
+        int b = selected->get_b();
+
+        int iter = selected->get_iter();
+        float offset_x = selected->get_offset_x();
+        float offset_y = selected->get_offset_y();
+        float zoom = selected->get_zoom();
+
+        const char* items[] = { "GPU", "OMP", "MPI"};
+        int item_current_idx = selected->get_type();
+        const char* combo_preview_value = items[item_current_idx];
+
+
+        ImGui::Spacing();
+        ImGui::Text("Farba");
+        ImGui::DragInt("R", &r);
+        ImGui::DragInt("G", &g);
+        ImGui::DragInt("B", &b);
+        ImGui::Separator();
+        ImGui::Text("Nastavenie");
+        if (ImGui::BeginCombo("", combo_preview_value))
         {
+            for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+            {
+                const bool is_selected = (item_current_idx == n);
+                if (ImGui::Selectable(items[n], is_selected)) {
+                    item_current_idx = n;
+                    selected->set_type(item_current_idx);
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::DragFloat("OFFSET X", &offset_x);
+        ImGui::DragFloat("OFFSET Y", &offset_y);
+        ImGui::DragInt("Iteracie", &iter);
+        ImGui::DragFloat("Zoom", &zoom);
+        ImGui::Separator();
+        if(ImGui::Button("Reset")) {
+            selected->reset();
             return;
         }
         ImGui::SameLine();
-        if(ImGui::Button("CANCEL"))
-        {
+        if(ImGui::Button("Vymaz")) {
+            if(g_get_mb_objs()->size() > 1 ) {
+                g_get_mb_objs()->erase(std::remove(g_get_mb_objs()->begin(), g_get_mb_objs()->end(), selected), g_get_mb_objs()->end());
+                    }
+            return;
         }
+        selected->set_r(r);
+        selected->set_g(g);
+        selected->set_b(b);
+
+        selected->set_offset_x(offset_x);
+        selected->set_offset_y(offset_y);
+        selected->set_iter(iter);
+        selected->set_zoom(zoom);
+
 
         ImGui::End();
     }

@@ -17,9 +17,9 @@ void export_image(string file_path) {
     GLsizei bufferSize = stride * height;
     std::vector<char> buffer(bufferSize);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, g_get_main_buffer()->id);
+    glBindFramebuffer(GL_FRAMEBUFFER, g_get_active_buffer()->id);
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    glReadBuffer(g_get_main_buffer()->texture);
+    glReadBuffer(g_get_active_buffer()->texture);
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
     stbi_flip_vertically_on_write(true);
     stbi_write_png(file_path.c_str(), width, height, nrChannels, buffer.data(), stride);

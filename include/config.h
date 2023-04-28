@@ -19,4 +19,5 @@ using namespace std;
 void print(std::string msg);
 void export_image(string file_path);
 
-using namespace std;
+void clear_all_mb();
+

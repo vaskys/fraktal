@@ -25,7 +25,6 @@ FrameBuffer::FrameBuffer(int w,int h)
 FrameBuffer::~FrameBuffer()
 {
     clear();
-    print("FBO KILL");
 }
 
 

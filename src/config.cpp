@@ -5,3 +5,4 @@ void print(std::string msg) {
         cout<< msg << endl;
     #endif
 }
+
