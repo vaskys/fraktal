@@ -55,8 +55,6 @@ void Shader::compile(string vertex_code,string fragment_code)
         print("vertex error "+string(log));
 
     }
-    else
-        print("vertex gucci");
 
     fragment=glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment,1,&shader_code_fragemt,NULL);
@@ -68,8 +66,6 @@ void Shader::compile(string vertex_code,string fragment_code)
         glGetShaderInfoLog(fragment,512,NULL,log);
         print("fragmet error "+string(log));
     }
-    else
-        print("fragment gucci");
 
     id=glCreateProgram();
     glAttachShader(id,vertex);
@@ -81,6 +77,7 @@ void Shader::compile(string vertex_code,string fragment_code)
     {
         glGetProgramInfoLog(this->id,512,NULL,log);
         print("shader link error "+string(log));
+        print(vertex_code);
     }
 
     glDeleteShader(vertex);

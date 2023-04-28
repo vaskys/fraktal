@@ -26,6 +26,7 @@ include_directories(
     include
     imgui
     imgui/backends
+    implot
     /opt/homebrew/opt/libomp/include
     SYSTEM ${MPI_INCLUDE_PATH}
     SYSTEM ${GLEW_INCLUDE_DIR}
@@ -41,6 +42,9 @@ add_executable(fraktal
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
     imgui/imgui_demo.cpp
+
+    implot/implot.cpp
+    implot/implot_items.cpp
 )
 
 target_link_libraries(fraktal omp)

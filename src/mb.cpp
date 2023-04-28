@@ -79,7 +79,6 @@ void MB::update() {
 }
 
 void MB::gpu() {
-    auto start = high_resolution_clock::now();
 
     g_get_mb_shader()->use();
     g_get_mb_shader()->send_int_uniform("screen_w", g_get_screen_w())   ;
@@ -93,10 +92,6 @@ void MB::gpu() {
     g_get_mb_shader()->send_int_uniform("iteracie", get_iter());
 
     g_draw_g_object();
-
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    this->cas = duration.count();
 }
 
 int check = 0;
@@ -133,7 +128,7 @@ void MB::omp() {
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
-    this->cas= duration.count();
+    this->cas= duration.count() / 1000.0f;
 
     glBindTexture(GL_TEXTURE_2D, g_get_active_buffer()->texture);
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,g_get_screen_w(),g_get_screen_h(),GL_RGB,GL_FLOAT,image_data);

@@ -2,15 +2,20 @@
 #include "imgui.h"
 #include "ogl.h"
 #include "mb.h"
+#include "implot.h"
+
 #include <string>
 
 
 bool save_window = false;
 char save_input_text[255] = "";
 
+bool graf_window = false;
+
 void init_gui(GLFWwindow *window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -18,6 +23,20 @@ void init_gui(GLFWwindow *window) {
     ImGui::StyleColorsDark();
 }
 
+
+void gui_graf_view() {
+    if(graf_window) {
+    static ImS8  data[10] = {1,2,3,4,5,6,7,8,9,10};
+    if (ImPlot::BeginPlot("Bar Plot")) {
+        ImPlot::PlotBars("Vertical",data,10,0.1,1);
+        ImPlot::EndPlot();
+    }
+        if(ImGui::Button("ZRUSIT")) {
+            graf_window = false;
+        }
+        ImGui::End();
+    }
+}
 
 void gui_save_view() {
     if(save_window) {
@@ -59,7 +78,6 @@ void gui_main_menu() {
             if (ImGui::MenuItem("Export")) 
             {
                 save_window = true;
-//                export_image("test");
             }
             if (ImGui::MenuItem("Novy Tab")) 
             {
@@ -175,6 +193,10 @@ void gui_side_panel() {
             }
             return;
         }
+        ImGui::SameLine();
+        if(ImGui::Button("GRAF")) {
+            graf_window = true;
+        }
         string cas_t = "Cas " + to_string(selected->cas) + " ms";
         ImGui::Text(cas_t.c_str());
 
@@ -203,6 +225,7 @@ void draw_gui() {
     gui_fbo_view();
     gui_side_panel();
     gui_save_view();
+    gui_graf_view();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

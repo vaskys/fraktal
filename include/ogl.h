@@ -33,8 +33,6 @@ void g_set_active_mb_obj(MB* obj);
 Shader* g_get_mb_shader();
 vector<MB*>* g_get_mb_objs();
 
-Shader *g_get_data_shader();
-
-
+int g_get_delta_time();
 
 #endif

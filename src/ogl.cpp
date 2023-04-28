@@ -3,12 +3,12 @@
 #include "gui.h"
 #include "framebuffer.h"
 #include "mb.h"
+#include "implot.h"
 #include <string>
 
 vector<MB*> mb_objs;
 MB* active_obj;
 Shader* mb_shader;
-Shader* data_shader;
 
 GLFWwindow *window;
 unsigned int VAO;
@@ -28,6 +28,10 @@ Shader *fbo_shader;
 
 bool key_shift = false;
 
+double prev_time = 0;
+double frames=0;
+int delta_time = 0;
+
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     float zoom = active_obj->get_zoom();
@@ -35,7 +39,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     float offset_y = active_obj->get_offset_y();
 
     if(key_shift) {
-        zoom +=yoffset * (zoom/2.0f);
+        zoom +=(yoffset * 0.1f) * (zoom/2.0f);
+        if(zoom < 100 ) zoom = 100;
 
     }
     else {
@@ -111,7 +116,6 @@ int g_init(int screenW, int screenH, const char *title) {
 
     fbo_shader = new Shader("shaders/fbo_vertex.glsl","shaders/fbo_fragment.glsl");
     mb_shader = new Shader("shaders/mb_vertex.glsl","shaders/mv_fragment.glsl");
-    data_shader = new Shader("shaders/data_vertex.glsl","shaders/data_fragment.glsl");
 
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
@@ -119,13 +123,14 @@ int g_init(int screenW, int screenH, const char *title) {
     g_add_mb_obj();
     g_set_active_mb_obj(mb_objs.front());
 
+    prev_time = glfwGetTime() * 1000;
+
     return 0;
 }
 
 void g_clear() {
     delete fbo_shader;
     delete mb_shader;
-    delete data_shader;
 
     for(int i = 0; i < mb_objs.size(); i++ ) {
         mb_objs[i]->clear();
@@ -143,6 +148,7 @@ void g_clear() {
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
     glfwTerminate();
 }
@@ -153,6 +159,19 @@ bool g_main_loop() {
 
         glfwGetFramebufferSize( window, &d_screen_w, &d_screen_h);
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
+
+        delta_time = glfwGetTime() * 1000 - prev_time;
+        frames++;
+
+        if (delta_time >= 1000.0) {
+            if(g_get_active_mb_obj()->get_type() == 0) {
+                 g_get_active_mb_obj()->cas = delta_time/double(frames);
+            }
+
+            frames = 0;
+            prev_time = glfwGetTime() * 1000;
+        }
 
         return true;
     }
@@ -233,9 +252,6 @@ Shader *g_get_mb_shader() {
     return mb_shader;
 }
 
-Shader *g_get_data_shader() {
-    return data_shader;
-}
 
 vector<MB*>* g_get_mb_objs() {
     return &mb_objs;
@@ -244,3 +260,8 @@ vector<MB*>* g_get_mb_objs() {
 void g_set_active_mb_obj(MB *obj) {
     active_obj = obj;
 }
+
+int g_get_delta_time() {
+    return delta_time;
+}
+

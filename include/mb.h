@@ -45,7 +45,7 @@ public:
     void set_omp_threads(int i);
     int get_omp_threads();
 
-    float cas;
+    double cas;
 
 private:
     int r;
