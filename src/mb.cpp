@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <string>
 #include <unistd.h>
+#include <mpi.h>
 
 
 float mandelbrot(float cx,float cy,float iteracie) {
@@ -53,7 +54,7 @@ MB::MB() {
     offset_y = 0;
     zoom = 100;
     type = 0;
-    n_omp_threads = 2;
+    n_omp_threads = 1;
     cas = 0.0f;
 }
 
@@ -94,7 +95,6 @@ void MB::gpu() {
     g_draw_g_object();
 }
 
-int check = 0;
 
 void MB::omp() {
     float *image_data = new float[g_get_screen_h() * g_get_screen_w() * 3];
@@ -134,7 +134,69 @@ void MB::omp() {
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,g_get_screen_w(),g_get_screen_h(),GL_RGB,GL_FLOAT,image_data);
     delete [] image_data;
 }
-void MB::mpi() {}
+int check = 0;
+void MB::mpi() {
+    auto start = high_resolution_clock::now();
+    const int size = g_get_screen_w() * g_get_screen_h() * 3;
+    float *image_data = new float[size];
+
+    MPI_Comm child;
+    int spawnError[255];
+    MPI_Comm_spawn("mpi_src/main.o", MPI_ARGV_NULL, this->get_omp_threads(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &child, spawnError);
+
+    int parent_id; 
+    MPI_Comm_rank(MPI_COMM_WORLD, &parent_id);
+
+    int w = g_get_screen_w();
+    int h = g_get_screen_h();
+    int iter = this->get_iter();
+    float zoom = this->get_zoom();
+    float off_x = this->get_offset_x();
+    float off_y = this->get_offset_y();
+    int c_r = this->get_r();
+    int c_g = this->get_g();
+    int c_b = this->get_b();
+    int pocet = this->get_omp_threads();
+
+
+    MPI_Bcast(&parent_id,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&w,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&h,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&iter,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&zoom,1,MPI_FLOAT,MPI_ROOT,child);
+    MPI_Bcast(&off_x,1,MPI_FLOAT,MPI_ROOT,child);
+    MPI_Bcast(&off_y,1,MPI_FLOAT,MPI_ROOT,child);
+    MPI_Bcast(&c_r,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&c_g,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&c_b,1,MPI_INT,MPI_ROOT,child);
+    MPI_Bcast(&pocet,1,MPI_INT,MPI_ROOT,child);
+
+
+     float *image_data_sub;
+     MPI_Gather(image_data_sub, size/pocet, MPI_FLOAT, image_data, size, MPI_FLOAT,MPI_ROOT,child);
+    //
+    //
+
+    // for(int i=0; i < pocet; i++ ) {
+    //     float *data = new float[size/pocet];
+    //     MPI_Recv(data, size/pocet, MPI_FLOAT, MPI_ANY_SOURCE, 0, child, MPI_STATUS_IGNORE);
+    //     for(int j=0; j< size/pocet; j++) {
+    //         image_data[j+(i*size/pocet)] = data[j];
+    //     }
+    //
+    //     delete [] data;
+    // }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    this->cas= duration.count() / 1000.0f;
+                
+    glBindTexture(GL_TEXTURE_2D, g_get_active_buffer()->texture);
+    glTexSubImage2D(GL_TEXTURE_2D,0,0,0,g_get_screen_w(),g_get_screen_h(),GL_RGB,GL_FLOAT,image_data);
+    delete [] image_data;
+   // delete [] image_data_sub;
+    //
+}
 
 void MB::reset() {
     r = 9;

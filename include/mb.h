@@ -41,11 +41,12 @@ public:
     void reset();
     void clear();
 
-
     void set_omp_threads(int i);
     int get_omp_threads();
 
     double cas;
+
+    void omp_test();
 
 private:
     int r;

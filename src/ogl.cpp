@@ -4,7 +4,9 @@
 #include "framebuffer.h"
 #include "mb.h"
 #include "implot.h"
+#include <mpi.h>
 #include <string>
+#include <mpi.h>
 
 vector<MB*> mb_objs;
 MB* active_obj;
