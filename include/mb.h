@@ -47,6 +47,13 @@ public:
     double cas;
 
     void omp_test();
+    void gpu_test();
+    void mpi_test();
+
+
+    vector<double> omp_data;
+    vector<double> gpu_data;
+    vector<double> mpi_data;
 
 private:
     int r;

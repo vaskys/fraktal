@@ -168,7 +168,10 @@ bool g_main_loop() {
 
         if (delta_time >= 1000.0) {
             if(g_get_active_mb_obj()->get_type() == 0) {
-                 g_get_active_mb_obj()->cas = delta_time/double(frames);
+                g_get_active_mb_obj()->cas = delta_time/double(frames);
+                if(g_get_active_mb_obj()->gpu_data.size() < 10 ) {
+                    g_get_active_mb_obj()->gpu_data.push_back(g_get_active_mb_obj()->cas);
+                }
             }
 
             frames = 0;

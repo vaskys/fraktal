@@ -3,6 +3,7 @@
 #include "ogl.h"
 #include "mb.h"
 #include "implot.h"
+#include <math.h>
 
 #include <string>
 
@@ -26,42 +27,46 @@ void init_gui(GLFWwindow *window) {
 
 void gui_graf_view() {
     if(graf_window) {
-static ImS8  data[30] = {83, 67, 23, 89, 83, 78, 91, 82, 85, 90,  // midterm
-                             80, 62, 56, 99, 55, 78, 88, 78, 90, 100, // final
-                             80, 69, 52, 92, 72, 78, 75, 76, 89, 95}; // course
-
-    static const char*  ilabels[]   = {"Midterm Exam","Final Exam","Course Grade"};
-    static const char*  glabels[]   = {"S1","S2","S3","S4","S5","S6","S7","S8","S9","S10"};
-    static const double positions[] = {0,1,2,3,4,5,6,7,8,9};
-
-    static int items  = 3;
-    static int groups = 10;
-    static float size = 0.67f;
-
-    static ImPlotBarGroupsFlags flags = 0;
-    static bool horz = false;
-
-    ImGui::CheckboxFlags("Stacked", (unsigned int*)&flags, ImPlotBarGroupsFlags_Stacked);
-    ImGui::SameLine();
-    ImGui::Checkbox("Horizontal",&horz);
-
-    ImGui::SliderInt("Items",&items,1,3);
-    ImGui::SliderFloat("Size",&size,0,1);
-
-    if (ImPlot::BeginPlot("Bar Group")) {
-        ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
-        if (horz) {
-            ImPlot::SetupAxes("Score","Student",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
-            ImPlot::SetupAxisTicks(ImAxis_Y1,positions, groups, glabels);
-            ImPlot::PlotBarGroups(ilabels,data,items,groups,size,0,flags|ImPlotBarGroupsFlags_Horizontal);
+        MB *selected = g_get_active_mb_obj();
+        if(selected->get_type() == 1) {
+            const char*  glabels[]   = {"1","2","4","8","16","32","64","128"};
+            const double positions[] = {0,1,2,3,4,5,6,7,8};
+            ImGui::Begin("OMP");
+            double *data = &selected->omp_data[0];
+            if (ImPlot::BeginPlot("OMP DATA")) {
+                ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+                ImPlot::SetupAxisTicks(ImAxis_X1,positions,8, glabels);
+                ImPlot::SetupAxes("Vlakna","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
+                ImPlot::PlotBars("OMP",data,8,0.4);
+                ImPlot::EndPlot();
+            }
+            if(ImGui::Button("ZAVRIET")) { graf_window = false;}
+            ImGui::End();
+        }
+        else if(selected->get_type() == 0 ) {
+            ImGui::Begin("GPU");
+            double *data = &selected->gpu_data[0];
+            if (ImPlot::BeginPlot("GPU DATA")) {
+                ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+                ImPlot::SetupAxes("It","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
+                ImPlot::PlotBars("GPU",data,10,0.4);
+                ImPlot::EndPlot();
+            }
+            if(ImGui::Button("ZAVRIET")) { graf_window = false;}
+            ImGui::End();
         }
         else {
-            ImPlot::SetupAxes("Student","Score",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
-            ImPlot::SetupAxisTicks(ImAxis_X1,positions, groups, glabels);
-            ImPlot::PlotBarGroups(ilabels,data,items,groups,size,0,flags);
+            ImGui::Begin("MPI");
+            double *data = &selected->mpi_data[0];
+            if (ImPlot::BeginPlot("MPI DATA")) {
+                ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+                ImPlot::SetupAxes("N Process","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
+                ImPlot::PlotBars("MPI",data,3,0.4);
+                ImPlot::EndPlot();
+            }
+            if(ImGui::Button("ZAVRIET")) { graf_window = false;}
+            ImGui::End();
         }
-        ImPlot::EndPlot();
-    }
     }
 }
 
@@ -138,6 +143,7 @@ void gui_fbo_view() {
                     ImGui::Image((ImTextureID)t_id,size,ImVec2(0,1),ImVec2(1,0));
                     ImGui::EndChild();
 
+
                     ImGui::EndTabItem();
                 } 
             }
@@ -194,6 +200,7 @@ void gui_side_panel() {
                 if (ImGui::Selectable(items[n], is_selected)) {
                     item_current_idx = n;
                     selected->set_type(item_current_idx);
+                    graf_window = false;
                 }
 
                 if (is_selected)
@@ -223,6 +230,15 @@ void gui_side_panel() {
         ImGui::SameLine();
         if(ImGui::Button("GRAF")) {
             graf_window = true;
+            if(selected->get_type() == 0 ) {
+                selected->gpu_test();
+            }
+            else if(selected->get_type() == 1) {
+                selected->omp_test();
+            }
+            else {
+                selected->mpi_test();
+            }
         }
         string cas_t = "Cas " + to_string(selected->cas) + " ms";
         ImGui::Text(cas_t.c_str());

@@ -6,6 +6,7 @@
 #include <string>
 #include <unistd.h>
 #include <mpi.h>
+#include <math.h>
 
 
 float mandelbrot(float cx,float cy,float iteracie) {
@@ -134,7 +135,7 @@ void MB::omp() {
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,g_get_screen_w(),g_get_screen_h(),GL_RGB,GL_FLOAT,image_data);
     delete [] image_data;
 }
-int check = 0;
+
 void MB::mpi() {
     auto start = high_resolution_clock::now();
     const int size = g_get_screen_w() * g_get_screen_h() * 3;
@@ -174,8 +175,6 @@ void MB::mpi() {
 
      float *image_data_sub;
      MPI_Gather(image_data_sub, size/pocet, MPI_FLOAT, image_data, size, MPI_FLOAT,MPI_ROOT,child);
-    //
-    //
 
     // for(int i=0; i < pocet; i++ ) {
     //     float *data = new float[size/pocet];
@@ -206,7 +205,7 @@ void MB::reset() {
     offset_x = 0;
     offset_y = 0;
     zoom = 100;
-    n_omp_threads = 2;
+    n_omp_threads = 1;
 }
 
 
@@ -288,5 +287,26 @@ void MB::set_omp_threads(int i) {
 }
 
 
+void MB::omp_test() {
+    omp_data.clear();
+    for(int i=0; i<=7; i++) {
+        set_omp_threads(pow(2,i));
+        omp();
+        omp_data.push_back(cas);
+    }
+}
 
 
+void MB::gpu_test() {
+    //gpu_data.clear();
+}
+
+
+void MB::mpi_test() {
+    mpi_data.clear();
+    for(int i=1;i<4;i++) {
+        set_omp_threads(i);
+        mpi();
+        mpi_data.push_back(cas);
+    }
+}
