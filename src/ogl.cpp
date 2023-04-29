@@ -127,6 +127,8 @@ int g_init(int screenW, int screenH, const char *title) {
 
     prev_time = glfwGetTime() * 1000;
 
+    glfwSwapInterval(0);
+
     return 0;
 }
 

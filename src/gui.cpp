@@ -11,6 +11,8 @@
 bool save_window = false;
 char save_input_text[255] = "";
 
+int selected_tab = 0;
+
 bool graf_window = false;
 
 void init_gui(GLFWwindow *window) {
@@ -142,6 +144,10 @@ void gui_fbo_view() {
                     unsigned int t_id=objekt->get_buffer()->texture;
                     ImGui::Image((ImTextureID)t_id,size,ImVec2(0,1),ImVec2(1,0));
                     ImGui::EndChild();
+
+                    if (i!=selected_tab)
+                        graf_window = false;
+                    selected_tab = i;
 
 
                     ImGui::EndTabItem();

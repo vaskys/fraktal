@@ -82,6 +82,8 @@ void MB::update() {
 
 void MB::gpu() {
 
+    // auto start = high_resolution_clock::now();
+
     g_get_mb_shader()->use();
     g_get_mb_shader()->send_int_uniform("screen_w", g_get_screen_w())   ;
     g_get_mb_shader()->send_int_uniform("screen_h", g_get_screen_h());
@@ -94,6 +96,11 @@ void MB::gpu() {
     g_get_mb_shader()->send_int_uniform("iteracie", get_iter());
 
     g_draw_g_object();
+
+    // auto stop = high_resolution_clock::now();
+    // auto duration = duration_cast<microseconds>(stop - start);
+    // this->cas= duration.count() / 1000.0f;
+
 }
 
 
@@ -298,7 +305,7 @@ void MB::omp_test() {
 
 
 void MB::gpu_test() {
-    //gpu_data.clear();
+    gpu_data.clear();
 }
 
 
