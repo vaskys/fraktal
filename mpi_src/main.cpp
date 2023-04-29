@@ -1,5 +1,4 @@
 #include <iostream>
-#include<cstdlib>
 #include <mpi.h>
 
 using namespace std;
@@ -40,7 +39,6 @@ float farby_b(float t,float color_b) {
 
 
 int main() {
-  srand((unsigned) time(NULL)); 
   int comm_size;
 
   MPI_Init(NULL,NULL);
@@ -111,8 +109,6 @@ int main() {
 
    // MPI_Send(image_data_sub, size/pocet, MPI_FLOAT, parent_id, 0, parent);
      MPI_Gather(image_data_sub, size/pocet, MPI_FLOAT, image_data, size, MPI_FLOAT, parent_id, parent);
-    MPI_Finalize();
-//     delete [] image_data_sub;
   }
   MPI_Finalize();
   return 0;
