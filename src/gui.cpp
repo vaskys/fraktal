@@ -68,7 +68,7 @@ void gui_graf_view() {
             if (ImPlot::BeginPlot("MPI DATA")) {
                 ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
                 ImPlot::SetupAxes("N Process","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
-                ImPlot::PlotBars("MPI",data,3,0.4);
+                ImPlot::PlotBars("MPI",data,3,0.4,1);
                 ImPlot::EndPlot();
             }
             if(ImGui::Button("ZAVRIET")) { graf_window = false;}
