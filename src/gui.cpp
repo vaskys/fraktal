@@ -47,12 +47,17 @@ void gui_graf_view() {
         }
         else if(selected->get_type() == 0 ) {
             ImGui::Begin("GPU");
-            double *data = &selected->gpu_data[0];
-            if (ImPlot::BeginPlot("GPU DATA")) {
-                ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
-                ImPlot::SetupAxes("It","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
-                ImPlot::PlotBars("GPU",data,10,0.4);
-                ImPlot::EndPlot();
+            if(selected->gpu_data.size() == 10) {
+                double *data = &selected->gpu_data[0];
+                if (ImPlot::BeginPlot("GPU DATA")) {
+                    ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+                    ImPlot::SetupAxes("It","Cas",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
+                    ImPlot::PlotBars("GPU",data,10,0.4);
+                    ImPlot::EndPlot();
+                }
+            }
+            else {
+                ImGui::Text("Ziskavam Data! 10s");
             }
             if(ImGui::Button("ZAVRIET")) { graf_window = false;}
             ImGui::End();

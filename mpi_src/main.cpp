@@ -86,8 +86,6 @@ int main() {
         int e = (i  + index  * (size/pocet)) / 3  ;
         int x = (e ) % screen_w;
         int y = ((e ) / screen_w ) % screen_h  ;
-
-      // cout<<x<<" "<<y<<endl;
        
         float cy = y - (float)screen_h/2;
         float cx = x - (float)screen_w/2;

@@ -8,6 +8,7 @@
 int main(int argc, char** argv) {
     int ierr, num_procs, my_id;
     ierr = MPI_Init(NULL,NULL);
+
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_id);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
